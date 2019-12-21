@@ -2,16 +2,28 @@ library dismmisible_stack;
 
 import 'package:flutter/material.dart';
 
+const Map<DismissDirection, double> defaultDismissThresholds = {
+  DismissDirection.startToEnd: 0.5,
+  DismissDirection.endToStart: 0.5
+};
+
+const double defaultCrossAxisEndOffset = 0;
+
+const double defaultAlignmentOffsetX = 0.1;
+const double defaultAlignmentOffsetY = 0.0;
+
 class DismissibleStack extends StatefulWidget {
 
-  const
   DismissibleStack({
     this.children,
-    this.swipeRight,
-    this.swipeLeft,
+    this.swipeRight, //TODO - better naming (depends on direction)
+    this.swipeLeft, //TODO - better naming (depends on direction)
     this.onDismissed,
-    this.dismissThresholds,
-    this.direction = DismissDirection.vertical,
+    this.dismissThresholds = defaultDismissThresholds,
+    this.crossAxisEndOffset = defaultCrossAxisEndOffset,
+    this.direction = DismissDirection.horizontal,
+    this.stackAlignmentOffsetX = defaultAlignmentOffsetX,
+    this.stackAlignmentOffsetY = defaultAlignmentOffsetY
   });
 
   final List<Widget> children;
@@ -25,6 +37,12 @@ class DismissibleStack extends StatefulWidget {
   final Map<DismissDirection, double> dismissThresholds;
 
   final DismissDirection direction;
+
+  final double crossAxisEndOffset;
+
+  final double stackAlignmentOffsetX;
+
+  final double stackAlignmentOffsetY;
 
   @override
   State<StatefulWidget> createState() => _DismissibleStackState();
@@ -42,23 +60,37 @@ class _DismissibleStackState
     return _stack;
   }
 
-  _createDismissibleChildren(List<Widget> children) {
+  List<Widget> _createDismissibleChildren(List<Widget> children) {
     List<Widget> _dismissibleList = new List();
 
     for (var child in children) {
-      _dismissibleList.add(createDismissibleChild(child));
+      _dismissibleList.add(
+          createDismissibleChild(
+              child,
+              children.indexOf(child).toDouble()
+          )
+      );
     }
+
+    return _dismissibleList;
   }
 
-  Widget createDismissibleChild(Widget child) {
+  Widget createDismissibleChild(Widget child, double index) {
     return Dismissible (
       background: widget.swipeRight,
       secondaryBackground: widget.swipeLeft,
       onDismissed: widget.onDismissed,
       dismissThresholds: widget.dismissThresholds,
       direction: widget.direction,
+      crossAxisEndOffset: widget.crossAxisEndOffset,
       key: UniqueKey(),
-      child: child,
+      child: Container(
+        alignment: Alignment(
+            index * widget.stackAlignmentOffsetY,
+            index * widget.stackAlignmentOffsetX
+        ),
+        child: child,
+      )
     );
   }
 }
